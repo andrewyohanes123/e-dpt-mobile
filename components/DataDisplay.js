@@ -5,20 +5,20 @@ import moment from 'moment'
 import 'moment/dist/locale/id'
 
 export default function DataDisplay({ voter, notFound, onSearch }) {
-  const [nik, setNik] = useState('');
+  const [nama, setNama] = useState('');
 
   moment.locale('id');
 
   const search = () => {
-    if (nik.length > 0) {
-      onSearch(nik);
+    if (nama.length > 0) {
+      onSearch(nama);
     }
   }
 
   return (
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={{ flex: 1, padding: 8 }}>
-        <Input keyboardType="number-pad" onChangeText={setNik} value={nik} placeholder="Cari data Pemilih berdasarkan NIK" />
+        <Input keyboardType="number-pad" onChangeText={setNama} value={nama} placeholder="Nama Pemilih" />
         <Divider />
         <Button onPress={search} title="Cari Data" />
       </View>
