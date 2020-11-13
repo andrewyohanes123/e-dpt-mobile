@@ -75,7 +75,7 @@ const App = () => {
 
   const getData = (nama, tanggal_lahir) => {
     const data = realm.objects('Voter')
-    const voters = data.filtered(`nama COINTAINS $0 AND tanggal_lahir = $1`, nama, tanggal_lahir);
+    const voters = data.filtered(`nama CONTAINS $0 AND tanggal_lahir = $1`, nama, new Date(...`${tanggal_lahir}`.split('-').map(e => parseInt(e)), 0, 0, 0));
     setVoter(voters);
   }
 
@@ -85,7 +85,7 @@ const App = () => {
       {/* <View style={{ padding: 10, flex: 1 }}> */}
       {
         checking ?
-          <Loading />
+          <Loading percentage={((importCount / 100) * dataLength)} />
           :
           <>
             <DataDisplay voter={voter} notFound={notFound} onSearch={getData} />
