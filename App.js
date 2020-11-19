@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Header } from 'react-native-elements';
-import { Alert } from 'react-native';
+import { Platform } from 'react-native';
 import RNFS from 'react-native-fs'
 import Papa from 'papaparse'
 import Realm from 'realm'
@@ -25,8 +25,9 @@ export default function App() {
   useEffect(() => {
     if (totalFile > 0) {
       check();
+      console.log(Platform.Version, 'version')
     }
-  }, [totalFile, number]);
+  }, [totalFile]);
 
   useEffect(() => {
     RNFS.readDirAssets('csv/').then(resp => setTotalFile(resp.length));
@@ -37,11 +38,18 @@ export default function App() {
       loadFile();
     }
 
-    if ((number + 1) === totalFile) {
-      toggleChecking(false);
-      toggleLoading(false);
+    // if ((number + 1) === totalFile) {
+    //   toggleChecking(false);
+    //   toggleLoading(false);
+    //   console.log('finish all')
+    // }
+  }, [number, totalFile]);
+
+  useEffect(() => {
+    if ((number + 1) === totalFile && (importCount + 1) === dataLength) {
+      check();
     }
-  }, [number, totalFile])
+  }, [number, totalFile, dataLength, importCount])
 
   const check = async () => {
     console.log('check')
@@ -140,7 +148,7 @@ export default function App() {
       {/* <View style={{ padding: 10, flex: 1 }}> */}
       {
         checking ?
-          <Loading fileReady={fileReady} total={dataLength} progress={importCount} />
+          <Loading fileReady={fileReady} total={dataLength} number={number} totalFile={totalFile} progress={importCount} />
           :
           <>
             <DataDisplay voter={voter} notFound={notFound} onSearch={getData} />

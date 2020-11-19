@@ -3,14 +3,14 @@ import { Input, Button, Divider, Card, Text } from 'react-native-elements'
 import { View, ScrollView, Image, Dimensions } from 'react-native'
 import DatePicker from 'react-native-datepicker'
 import moment from 'moment'
-import 'moment/dist/locale/id'
+// import 'moment/dist/locale/id'
 
 const { width } = Dimensions.get('window');
 export default function DataDisplay({ voter, notFound, onSearch }) {
   const [nama, setNama] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
 
-  moment.locale('id');
+  // moment.locale('id');
 
   const search = () => {
     if (nama.length > 0 && date.length > 0) {
