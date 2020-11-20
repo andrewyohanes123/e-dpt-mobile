@@ -8,6 +8,7 @@ import Loading from './components/Loading';
 import ImportModal from './components/ImportModal';
 import DataDisplay from './components/DataDisplay';
 import { VoterSchema } from './db/Voter';
+import { FILE_PREFIX } from '@env';
 
 const realm = new Realm({ schema: [VoterSchema] })
 
@@ -30,7 +31,13 @@ export default function App() {
   }, [totalFile]);
 
   useEffect(() => {
-    RNFS.readDirAssets('csv/').then(resp => setTotalFile(resp.length));
+    RNFS.readDirAssets(`csv`).then(resp => {
+      setTotalFile(resp.length);
+      // console.log(resp.map(({ name, path }) => ({ name, path })))
+    }).catch(e => {
+      console.log(e);
+    })
+    console.log('running', FILE_PREFIX)
   }, []);
 
   useEffect(() => {
@@ -64,7 +71,7 @@ export default function App() {
   }
 
   const loadFile = useCallback(() => {
-    RNFS.readFileAssets(`csv/sitaro_${number}.csv`, 'utf8').then(fileStr => {
+    RNFS.readFileAssets(`csv/${FILE_PREFIX}_${number}.csv`, 'utf8').then(fileStr => {
       toggleLoading(true);
       const parsedData = Papa.parse(fileStr, { header: true, delimitersToGuess: ['#', ','] });
       toggleFileReady(true);
@@ -144,7 +151,7 @@ export default function App() {
 
   return (
     <>
-      <Header backgroundColor="#2d3436" centerComponent={{ text: 'KPU', style: { color: '#fff' } }} />
+      <Header backgroundColor="#d35400" centerComponent={{ text: 'e-DPT', style: { color: '#fff' } }} />
       {/* <View style={{ padding: 10, flex: 1 }}> */}
       {
         checking ?
