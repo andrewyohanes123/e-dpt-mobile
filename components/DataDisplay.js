@@ -1,20 +1,24 @@
 import React, { useState } from 'react'
 import { Input, Button, Divider, Card, Text } from 'react-native-elements'
-import { View, ScrollView, Image, Dimensions } from 'react-native'
+import { View, ScrollView, Image, Dimensions, ToastAndroid } from 'react-native'
 import DatePicker from 'react-native-datepicker'
 import moment from 'moment'
-import 'moment/dist/locale/id'
+import 'moment/locale/id'
 
 const { width } = Dimensions.get('window');
 export default function DataDisplay({ voter, notFound, onSearch }) {
   const [nama, setNama] = useState('');
   const [date, setDate] = useState(new Date().toISOString());
+  const [searchQuery, setSearchQuery] = useState({ nama: '', date: '' });
 
-  // moment.locale('id', id);
+  moment.locale('id');
 
   const search = () => {
     if (nama.length > 0 && date.length > 0) {
       onSearch(nama, date);
+      setSearchQuery({ nama, date });
+    } else {
+      ToastAndroid.showWithGravity('Masukkan nama dan tanggal lahir', ToastAndroid.LONG, ToastAndroid.CENTER);
     }
   }
 
@@ -36,10 +40,10 @@ export default function DataDisplay({ voter, notFound, onSearch }) {
       </View>
       {
         notFound ?
-          <>
+          <View style={{ padding: 10 }}>
             <Image source={require('../imgs/notfound.png')} style={{ width: 400, height: 300 }} />
-            <Text style={{ textAlign: 'center', fontSize: 18 }}>Data Pemilih Dengan Nama {nama} dan Tanggal Lahir {moment(date).format('DD MMMM YYYY')} Tidak Ditemukan</Text>
-          </>
+            <Text style={{ textAlign: 'center', fontSize: 18 }}>Data pemilih dengan nama {searchQuery.nama} dan tanggal lahir {moment(searchQuery.date).format('DD MMMM YYYY')} tidak ditemukan</Text>
+          </View>
           :
           voter.length > 0 &&
           <Card containerStyle={{ padding: 0, paddingVertical: 20, marginHorizontal: 0 }}>
@@ -60,11 +64,11 @@ export default function DataDisplay({ voter, notFound, onSearch }) {
               </View>
               <View style={{ margin: 8 }}>
                 <Text style={{ fontWeight: 'bold' }}>Tempat/Tanggal Lahir</Text>
-                <Text>{v.tempat_lahir}/{moment(v.tanggal_lahir).subtract(1, 'month').locale('id').format('DD MMMM YYYY')}</Text>
+                <Text>{v.tempat_lahir}/{moment(v.tanggal_lahir).subtract(1, 'month').format('DD MMMM YYYY')}</Text>
               </View>
               <View style={{ margin: 8 }}>
                 <Text style={{ fontWeight: 'bold' }}>TPS</Text>
-                <Text>{v.tps} Kel. {v.kelurahan}, Kec. {v.kecamatan}, Kabupaten/Kota {v.kabupaten}</Text>
+                <Text>{`000${v.tps}`.slice(-3)} Kel. {v.kelurahan}, Kec. {v.kecamatan}, Kabupaten/Kota {v.kabupaten}</Text>
               </View>
             </React.Fragment>))}
           </Card>}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Header } from 'react-native-elements';
-import { Platform } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import RNFS from 'react-native-fs'
 import Papa from 'papaparse'
 import Realm from 'realm'
@@ -8,7 +8,7 @@ import Loading from './components/Loading';
 import ImportModal from './components/ImportModal';
 import DataDisplay from './components/DataDisplay';
 import { VoterSchema } from './db/Voter';
-import { FILE_PREFIX } from '@env';
+import { FILE_PREFIX, HEADER_TITLE } from '@env';
 
 const realm = new Realm({ schema: [VoterSchema] })
 
@@ -101,19 +101,19 @@ export default function App() {
     // }
     let i = 0;
     data.forEach((d) => {
+      setTimeout(() => {
+        setDataLength(data.length);
+        i = i + 1;
+        setImportCount(i);
+        if ((i + 1) === data.length) {
+          // check();
+          console.log('finish');
+          setNumber(num => (num === totalFile ? num : num + 1));
+        }
+      }, 95);
       realm.write(() => {
-        setTimeout(() => {
-          setDataLength(data.length);
-          i = i + 1;
-          setImportCount(i);
-          if ((i + 1) === data.length) {
-            // check();
-            console.log('finish');
-            setNumber(num => (num === totalFile ? num : num + 1));
-          }
-        }, 50);
         realm.create('Voter', {
-          tanggal_lahir: new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
+          tanggal_lahir: d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
           nama: `${d.nama}`.toUpperCase(),
           nkk: `${d.nkk}`,
           nik: `${d.nik}`,
@@ -151,7 +151,8 @@ export default function App() {
 
   return (
     <>
-      <Header backgroundColor="#d35400" centerComponent={{ text: 'e-DPT', style: { color: '#fff' } }} />
+      <StatusBar backgroundColor="#d35400" barStyle="light-content" />
+      <Header backgroundColor="#d35400" centerComponent={{ text: `e-DPT ${HEADER_TITLE}`, style: { color: '#fff' } }} />
       {/* <View style={{ padding: 10, flex: 1 }}> */}
       {
         checking ?
