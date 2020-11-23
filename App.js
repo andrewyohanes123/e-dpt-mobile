@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Header } from 'react-native-elements';
-import { Platform, StatusBar } from 'react-native';
+import { StatusBar, ToastAndroid } from 'react-native';
 import RNFS from 'react-native-fs'
 import Papa from 'papaparse'
 import Realm from 'realm'
@@ -8,7 +8,8 @@ import Loading from './components/Loading';
 import ImportModal from './components/ImportModal';
 import DataDisplay from './components/DataDisplay';
 import { VoterSchema } from './db/Voter';
-import { FILE_PREFIX, HEADER_TITLE } from '@env';
+import { FILE_PREFIX, HEADER_TITLE, TOTAL_DATA } from '@env';
+import SplashScreen from 'react-native-splash-screen'
 
 const realm = new Realm({ schema: [VoterSchema] })
 
@@ -22,11 +23,11 @@ export default function App() {
   const [fileReady, toggleFileReady] = useState(false);
   const [number, setNumber] = useState(0);
   const [totalFile, setTotalFile] = useState(false);
+  const [statistic, setStatistic] = useState([]);
 
   useEffect(() => {
     if (totalFile > 0) {
       check();
-      console.log(Platform.Version, 'version')
     }
   }, [totalFile]);
 
@@ -38,6 +39,7 @@ export default function App() {
       console.log(e);
     })
     console.log('running', FILE_PREFIX)
+    SplashScreen.hide();
   }, []);
 
   useEffect(() => {
@@ -61,10 +63,17 @@ export default function App() {
   const check = async () => {
     console.log('check')
     const voters = realm.objects('Voter');
-    console.log(voters.length)
-    if (voters.length > 0) {
-      toggleChecking(false);
-      toggleLoading(false);
+    const lastFile = Math.round((voters.length/1000));
+    const totalData = parseInt(TOTAL_DATA);
+    // console.log(voters.length - ((lastFile+1) * 501) + 501, 'last row', voters.length, 'total', lastFile, 'last file');
+    if (voters.length > 0) {  
+      if (voters.length < totalData) {
+        ToastAndroid.showWithGravity('Data DPT Belum Lengkap', ToastAndroid.LONG, ToastAndroid.CENTER);
+        setNumber(lastFile);
+      } else {
+        toggleChecking(false);
+        toggleLoading(false);
+      }
     } else {
       loadFile()
     }
@@ -110,32 +119,43 @@ export default function App() {
           console.log('finish');
           setNumber(num => (num === totalFile ? num : num + 1));
         }
-      }, 95);
-      realm.write(() => {
-        realm.create('Voter', {
-          tanggal_lahir: d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
-          nama: `${d.nama}`.toUpperCase(),
-          nkk: `${d.nkk}`,
-          nik: `${d.nik}`,
-          kecamatan: `${d.kecamatan}`,
-          kelurahan: `${d.kelurahan}`,
-          sumberdata: `${d.sumberdata}`,
-          keterangan: `${d.keterangan}`,
-          difabel: `${d.difabel}`,
-          ektp: `${d.ektp}`,
-          id: `${d.id}`,
-          tempat_lahir: `${d.tempat_lahir}`,
-          rt: `${d.rt}`,
-          rw: `${d.rw}`,
-          tps: `${d.tps}`,
-          kabupaten: `${d.kabupaten}`,
-          jenis_kelamin: `${d.jenis_kelamin}`,
-          kawin: `${d.kawin}`,
-          alamat: `${d.alamat}`,
-        });
-      })
+      }, 10);
+      const currentVoter = realm.objects('Voter').filtered('nama = $0 AND tanggal_lahir = $1', `${d.nama}`.toUpperCase(), d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0))
+      if (currentVoter.length === 0) {
+        try {      
+          realm.write(() => {
+            realm.create('Voter', {
+              tanggal_lahir: d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
+              nama: `${d.nama}`.toUpperCase(),
+              nkk: `${d.nkk}`,
+              nik: `${d.nik}`,
+              kecamatan: `${d.kecamatan}`,
+              kelurahan: `${d.kelurahan}`,
+              tempat_lahir: `${d.tempat_lahir}`,
+              tps: `${d.tps}`,
+              kabupaten: `${d.kabupaten}`,
+              jenis_kelamin: `${d.jenis_kelamin}`,
+              // sumberdata: `${d.sumberdata}`,
+              // keterangan: `${d.keterangan}`,
+              // difabel: `${d.difabel}`,
+              // ektp: `${d.ektp}`,
+              // rt: `${d.rt}`,
+              // rw: `${d.rw}`,
+              // kawin: `${d.kawin}`,
+              // alamat: `${d.alamat}`,
+            });
+          })
+        } catch (error) {
+          console.log(error, 'Error insert')
+        }
+      }
     });
   })
+
+  const getStatistic = ({tps, kecamatan, kelurahan}) => {
+    const stat = realm.objects('Voter').filtered(`tps = $0 AND kecamatan = $1 AND kelurahan = $2`, tps, kecamatan, kelurahan);
+    setStatistic(stat);
+  }
 
   const getData = (nama, tanggal_lahir) => {
     const data = realm.objects('Voter')
@@ -143,6 +163,7 @@ export default function App() {
     if (voters.length > 0) {
       toggleNotFound(false);
       setVoter(voters);
+      getStatistic(voters[0]);
     } else {
       setVoter([]);
       toggleNotFound(true);
@@ -151,7 +172,7 @@ export default function App() {
 
   return (
     <>
-      <StatusBar backgroundColor="#d35400" barStyle="light-content" />
+      <StatusBar translucent={true} backgroundColor="#d35400" barStyle="light-content" />
       <Header backgroundColor="#d35400" centerComponent={{ text: `e-DPT ${HEADER_TITLE}`, style: { color: '#fff' } }} />
       {/* <View style={{ padding: 10, flex: 1 }}> */}
       {
@@ -159,7 +180,7 @@ export default function App() {
           <Loading fileReady={fileReady} total={dataLength} number={number} totalFile={totalFile} progress={importCount} />
           :
           <>
-            <DataDisplay voter={voter} notFound={notFound} onSearch={getData} />
+            <DataDisplay voter={voter} statistic={statistic} notFound={notFound} onSearch={getData} />
           </>
       }
       {/* </View> */}
