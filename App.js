@@ -24,12 +24,19 @@ export default function App() {
   const [number, setNumber] = useState(0);
   const [totalFile, setTotalFile] = useState(false);
   const [statistic, setStatistic] = useState([]);
+  const [totalData, setTotalData] = useState(0);
 
   useEffect(() => {
     if (totalFile > 0) {
-      check();
+      getLastFile();
     }
   }, [totalFile]);
+
+  useEffect(() => {
+    if (totalData > 0) {
+      check();
+    }
+  }, [totalData])
 
   useEffect(() => {
     RNFS.readDirAssets(`csv`).then(resp => {
@@ -54,6 +61,14 @@ export default function App() {
     // }
   }, [number, totalFile]);
 
+  const getLastFile = () => {
+    RNFS.readFileAssets(`csv/${FILE_PREFIX}_${(totalFile - 1)}.csv`).then(res => {
+      const arr = Papa.parse(res, {header: true, delimiter: ','});
+      const total = (1000 * (totalFile - 2)) + arr.data.length;
+      setTotalData(total);
+    })
+  }
+
   useEffect(() => {
     if ((number + 1) === totalFile && (importCount + 1) === dataLength) {
       check();
@@ -63,16 +78,18 @@ export default function App() {
   const check = async () => {
     console.log('check')
     const voters = realm.objects('Voter');
-    const lastFile = Math.round((voters.length/1000));
-    const totalData = parseInt(TOTAL_DATA);
+    const lastFile = (Math.floor((voters.length/1000)) - 1);
+    // const totalData = parseInt(TOTAL_DATA);
     // console.log(voters.length - ((lastFile+1) * 501) + 501, 'last row', voters.length, 'total', lastFile, 'last file');
+    console.log(voters.length)
     if (voters.length > 0) {  
       if (voters.length < totalData) {
-        ToastAndroid.showWithGravity('Data DPT Belum Lengkap', ToastAndroid.LONG, ToastAndroid.CENTER);
-        setNumber(lastFile);
+        ToastAndroid.showWithGravity(`Data DPT Belum Lengkap ${voters.length}/${totalData}`, ToastAndroid.LONG, ToastAndroid.CENTER);
+        setNumber(lastFile < 0 ? 0 : lastFile);
       } else {
         toggleChecking(false);
         toggleLoading(false);
+        ToastAndroid.showWithGravity(`Total data DPT: ${voters.length}`, ToastAndroid.LONG, ToastAndroid.CENTER);
       }
     } else {
       loadFile()
@@ -118,6 +135,7 @@ export default function App() {
           // check();
           console.log('finish');
           setNumber(num => (num === totalFile ? num : num + 1));
+          setImportCount(0);
         }
       }, 10);
       const currentVoter = realm.objects('Voter').filtered('nama = $0 AND tanggal_lahir = $1', `${d.nama}`.toUpperCase(), d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0))
