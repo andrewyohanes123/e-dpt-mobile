@@ -15,7 +15,7 @@ export default function Loading({ progress, total, fileReady, number, totalFile 
         <Text style={{ textAlign: 'center' }}>{progress}/{total} data</Text>
         <Text style={{ textAlign: 'center' }}>{number}/{totalFile} File DPT</Text>
       </>}
-      <Text style={{ textAlign: 'center', color: '#777' }}>Harap tunggu 5 s/d 10 menit untuk mengimport data</Text>
+      <Text style={{ textAlign: 'center', color: '#777' }}>Mohon tunggu sampai proses import selesai</Text>
     </View>
   )
 }

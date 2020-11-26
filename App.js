@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Header } from 'react-native-elements';
-import { StatusBar, ToastAndroid } from 'react-native';
+import { StatusBar, ToastAndroid, Alert } from 'react-native';
 import RNFS from 'react-native-fs'
 import Papa from 'papaparse'
 import Realm from 'realm'
@@ -8,7 +8,7 @@ import Loading from './components/Loading';
 import ImportModal from './components/ImportModal';
 import DataDisplay from './components/DataDisplay';
 import { VoterSchema } from './db/Voter';
-import { FILE_PREFIX, HEADER_TITLE, TOTAL_DATA } from '@env';
+import { FILE_PREFIX, HEADER_TITLE } from '@env';
 import SplashScreen from 'react-native-splash-screen'
 
 const realm = new Realm({ schema: [VoterSchema] })
@@ -63,8 +63,9 @@ export default function App() {
 
   const getLastFile = () => {
     RNFS.readFileAssets(`csv/${FILE_PREFIX}_${(totalFile - 1)}.csv`).then(res => {
-      const arr = Papa.parse(res, {header: true, delimiter: ','});
-      const total = (1000 * (totalFile - 2)) + arr.data.length;
+      const arr = Papa.parse(res, { header: true, delimiter: ',' });
+      const total = (999 * (totalFile - 1)) + arr.data.length - 1;
+      console.log(total, realm.objects('Voter').length);
       setTotalData(total);
     })
   }
@@ -78,18 +79,20 @@ export default function App() {
   const check = async () => {
     console.log('check')
     const voters = realm.objects('Voter');
-    const lastFile = (Math.floor((voters.length/1000)) - 1);
+    const lastFile = (Math.floor((voters.length / 1000)) - 1);
     // const totalData = parseInt(TOTAL_DATA);
     // console.log(voters.length - ((lastFile+1) * 501) + 501, 'last row', voters.length, 'total', lastFile, 'last file');
-    console.log(voters.length)
-    if (voters.length > 0) {  
+    // console.log(voters.length)
+    if (voters.length > 0) {
       if (voters.length < totalData) {
-        ToastAndroid.showWithGravity(`Data DPT Belum Lengkap ${voters.length}/${totalData}`, ToastAndroid.LONG, ToastAndroid.CENTER);
+        // ToastAndroid.showWithGravity(`Data DPT Belum Lengkap ${voters.length}/${totalData}`, ToastAndroid.LONG, ToastAndroid.CENTER);
+        Alert.alert('Jumlah data belum lengkap', `Jumlah data DPT untuk Kab/Kota ${HEADER_TITLE} belum lengkap.\n ${voters.length}/${totalData} data`)
         setNumber(lastFile < 0 ? 0 : lastFile);
       } else {
         toggleChecking(false);
         toggleLoading(false);
-        ToastAndroid.showWithGravity(`Total data DPT: ${voters.length}`, ToastAndroid.LONG, ToastAndroid.CENTER);
+        ToastAndroid.showWithGravity(`Total data DPT: ${voters.length}`, ToastAndroid.LONG, ToastAndroid.TOP);
+        Alert.alert('Jumlah data', `Jumlah data DPT untuk Kab/Kota ${HEADER_TITLE} adalah ${voters.length} data`)
       }
     } else {
       loadFile()
@@ -138,9 +141,18 @@ export default function App() {
           setImportCount(0);
         }
       }, 10);
-      const currentVoter = realm.objects('Voter').filtered('nama = $0 AND tanggal_lahir = $1', `${d.nama}`.toUpperCase(), d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0))
+      const currentVoter = realm.objects('Voter').filtered(
+        'nama = $0 AND tanggal_lahir = $1 AND nik = $2 AND nkk = $3 AND tps = $4 AND kecamatan = $5 AND kelurahan = $6',
+        `${d.nama}`.toUpperCase(),
+        d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
+        `${d.nik}`,
+        `${d.nkk}`,
+        `${d.tps}`,
+        `${d.kecamatan}`,
+        `${d.kelurahan}`
+      )
       if (currentVoter.length === 0) {
-        try {      
+        try {
           realm.write(() => {
             realm.create('Voter', {
               tanggal_lahir: d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
@@ -170,7 +182,7 @@ export default function App() {
     });
   })
 
-  const getStatistic = ({tps, kecamatan, kelurahan}) => {
+  const getStatistic = ({ tps, kecamatan, kelurahan }) => {
     const stat = realm.objects('Voter').filtered(`tps = $0 AND kecamatan = $1 AND kelurahan = $2`, tps, kecamatan, kelurahan);
     setStatistic(stat);
   }

@@ -86,12 +86,42 @@ export default function DataDisplay({ voter, notFound, onSearch, statistic }) {
               <Card>
                 <Card.Title>Syarat Sebagai Pemilih</Card.Title>
                 <Card.Divider />
-                <Text style={styles.justify}>1. Genap berumur 17 (tujuh belas) tahun atau lebih pada hari pemungutan suara, sudah kawin, atau sudah pernah kawin</Text>
-                <Text style={styles.justify}>2. Tidak sedang terganggu jiwa/ingatanya</Text>
-                <Text style={styles.justify}>3. Tidak sedang dicabut hak pilihnya berdasarkan putusan pengadilan yang telah mempunyai kekuatan hukum tetap</Text>
-                <Text style={styles.justify}>4. Berdomisili di wilayah administratif Pemilih yang dibuktikan dengan KTP-el</Text>
-                <Text style={styles.justify}>5. Pemilih yang belum memiliki KTP-el, Pemilih dapat menggunakan Surat Keterangan perekaman KTP-el yang dikeluarkan oleh Dinas Kependudukan dan Pencatatan Sipil atau instansi sejenisnya yang memiliki kewenangan untuk itu; dan</Text>
-                <Text style={styles.justify}>6. Tidak sedang menjadi Tentara Nasional Indonesia, atau Kepolisisan Negara Republik Indonesia</Text>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>1.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Genap berumur 17 (tujuh belas) tahun atau lebih pada hari pemungutan suara, sudah kawin, atau sudah pernah kawin</Text>
+                  </View>
+                </View>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>2.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Tidak sedang terganggu jiwa/ingatanya</Text>
+                  </View>
+                </View>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>3.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Tidak sedang dicabut hak pilihnya berdasarkan putusan pengadilan yang telah mempunyai kekuatan hukum tetap</Text>
+                  </View>
+                </View>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>4.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Berdomisili di wilayah administratif Pemilih yang dibuktikan dengan KTP-el</Text>
+                  </View>
+                </View>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>5.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Pemilih yang belum memiliki KTP-el, Pemilih dapat menggunakan Surat Keterangan perekaman KTP-el yang dikeluarkan oleh Dinas Kependudukan dan Pencatatan Sipil atau instansi sejenisnya yang memiliki kewenangan untuk itu; dan</Text>
+                  </View>
+                </View>
+                <View style={styles.row}>
+                  <View style={styles.col1}><Text>6.</Text></View>
+                  <View style={styles.col2}>
+                    <Text style={styles.justify}>Tidak sedang menjadi Tentara Nasional Indonesia, atau Kepolisisan Negara Republik Indonesia</Text>
+                  </View>
+                </View>
               </Card>
             </View>
       }
@@ -102,6 +132,17 @@ export default function DataDisplay({ voter, notFound, onSearch, statistic }) {
 const styles = StyleSheet.create({
   justify: {
     textAlign: 'justify',
+  },
+  row: {
+    flex: 0,
+    flexDirection: 'row',
     marginBottom: 3.5
+  },
+  col1: {
+    flex: 0,
+    marginRight: 2.5
+  },
+  col2: {
+    flex: 1
   }
 })
