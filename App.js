@@ -84,7 +84,7 @@ export default function App() {
     // console.log(voters.length - ((lastFile+1) * 501) + 501, 'last row', voters.length, 'total', lastFile, 'last file');
     // console.log(voters.length)
     if (voters.length > 0) {
-      if (voters.length < totalData) {
+      if (voters.length < (totalData)) {
         // ToastAndroid.showWithGravity(`Data DPT Belum Lengkap ${voters.length}/${totalData}`, ToastAndroid.LONG, ToastAndroid.CENTER);
         Alert.alert('Jumlah data belum lengkap', `Jumlah data DPT untuk Kab/Kota ${HEADER_TITLE} belum lengkap.\n ${voters.length}/${totalData} data`)
         setNumber(lastFile < 0 ? 0 : lastFile);
@@ -131,25 +131,30 @@ export default function App() {
     let i = 0;
     data.forEach((d) => {
       setTimeout(() => {
-        setDataLength(data.length);
-        i = i + 1;
-        setImportCount(i);
         if ((i + 1) === data.length) {
           // check();
           console.log('finish');
           setNumber(num => (num === totalFile ? num : num + 1));
-          setImportCount(0);
+          (number < totalFile) && setImportCount(0);
+        } else {
+          setDataLength(data.length);
+          i = i + 1;
+          setImportCount(i);        
         }
-      }, 10);
+      }, 1);
       const currentVoter = realm.objects('Voter').filtered(
-        'nama = $0 AND tanggal_lahir = $1 AND nik = $2 AND nkk = $3 AND tps = $4 AND kecamatan = $5 AND kelurahan = $6',
+        'nama = $0 AND tanggal_lahir = $1 AND nik = $2 AND nkk = $3 AND tps = $4 AND kecamatan = $5 AND kelurahan = $6 AND alamat = $7 AND kawin = $8 AND sumberdata = $9 AND jenis_kelamin = $10',
         `${d.nama}`.toUpperCase(),
         d.tanggal_lahir === 'tanggal_lahir' ? new Date(2020, 1, 1, 0, 0, 0) : new Date(...`${d.tanggal_lahir}`.split('|').reverse().map(e => parseInt(e)), 0, 0, 0),
         `${d.nik}`,
         `${d.nkk}`,
         `${d.tps}`,
         `${d.kecamatan}`,
-        `${d.kelurahan}`
+        `${d.kelurahan}`,
+        `${d.alamat}`,
+        `${d.kawin}`,
+        `${d.sumberdata}`,
+        `${d.jenis_kelamin}`
       )
       if (currentVoter.length === 0) {
         try {
@@ -165,19 +170,21 @@ export default function App() {
               tps: `${d.tps}`,
               kabupaten: `${d.kabupaten}`,
               jenis_kelamin: `${d.jenis_kelamin}`,
-              // sumberdata: `${d.sumberdata}`,
+              sumberdata: `${d.sumberdata}`,
               // keterangan: `${d.keterangan}`,
               // difabel: `${d.difabel}`,
               // ektp: `${d.ektp}`,
               // rt: `${d.rt}`,
               // rw: `${d.rw}`,
-              // kawin: `${d.kawin}`,
-              // alamat: `${d.alamat}`,
+              kawin: `${d.kawin}`,
+              alamat: `${d.alamat}`,
             });
           })
         } catch (error) {
           console.log(error, 'Error insert')
         }
+      } else {
+        // console.log(d.nama)
       }
     });
   })
@@ -187,9 +194,9 @@ export default function App() {
     setStatistic(stat);
   }
 
-  const getData = (nama, tanggal_lahir) => {
+  const getData = (nama) => {
     const data = realm.objects('Voter')
-    const voters = data.filtered(`nama CONTAINS $0 AND tanggal_lahir = $1`, `${nama}`.toUpperCase(), new Date(...`${tanggal_lahir}`.split('-').map(e => parseInt(e)), 0, 0, 0));
+    const voters = data.filtered(`nama CONTAINS $0`, `${nama}`.toUpperCase());
     if (voters.length > 0) {
       toggleNotFound(false);
       setVoter(voters);

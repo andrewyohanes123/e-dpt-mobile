@@ -1,24 +1,21 @@
 import React, { useState } from 'react'
 import { Input, Button, Divider, Card, Text } from 'react-native-elements'
-import { View, ScrollView, Image, Dimensions, ToastAndroid, StyleSheet } from 'react-native'
-import DatePicker from 'react-native-datepicker'
+import { View, ScrollView, Image, ToastAndroid, StyleSheet } from 'react-native'
 import moment from 'moment'
 import 'moment/locale/id'
 
-const { width } = Dimensions.get('window');
 export default function DataDisplay({ voter, notFound, onSearch, statistic }) {
   const [nama, setNama] = useState('');
-  const [date, setDate] = useState(new Date().toISOString());
-  const [searchQuery, setSearchQuery] = useState({ nama: '', date: '' });
+  const [searchQuery, setSearchQuery] = useState({ nama: '' });
 
   moment.locale('id');
 
   const search = () => {
-    if (nama.length > 0 && date.length > 0) {
-      onSearch(nama, date);
-      setSearchQuery({ nama, date });
+    if (nama.length > 0) {
+      onSearch(nama);
+      setSearchQuery({ nama });
     } else {
-      ToastAndroid.showWithGravity('Masukkan nama dan tanggal lahir', ToastAndroid.LONG, ToastAndroid.CENTER);
+      ToastAndroid.showWithGravity('Masukkan nama ', ToastAndroid.LONG, ToastAndroid.CENTER);
     }
   }
 
@@ -26,15 +23,6 @@ export default function DataDisplay({ voter, notFound, onSearch, statistic }) {
     <ScrollView showsVerticalScrollIndicator={false}>
       <View style={{ flex: 1, padding: 8 }}>
         <Input keyboardType="default" onChangeText={setNama} value={nama} placeholder="Nama Pemilih" />
-        <DatePicker
-          date={date}
-          style={{ width }}
-          placeholder="Masukkan Tanggal Lahir Pemilih"
-          format="YYYY-MM-DD"
-          confirmBtnText="Pilih"
-          cancelBtnText="Batal"
-          onDateChange={setDate}
-        />
         <Divider style={{ marginVertical: 10 }} />
         <Button buttonStyle={{ backgroundColor: '#d35400' }} onPress={search} title="Cari Data" />
       </View>
@@ -42,7 +30,7 @@ export default function DataDisplay({ voter, notFound, onSearch, statistic }) {
         notFound ?
           <View style={{ padding: 10 }}>
             <Image source={require('../imgs/notfound.png')} style={{ width: 400, height: 300 }} />
-            <Text style={{ textAlign: 'center', color: '#777' }}>Data pemilih dengan nama {searchQuery.nama} dan tanggal lahir {moment(searchQuery.date).format('DD MMMM YYYY')} tidak ditemukan</Text>
+            <Text style={{ textAlign: 'center', color: '#777' }}>Data pemilih dengan nama {searchQuery.nama} tidak ditemukan</Text>
           </View>
           :
           voter.length > 0 ?
